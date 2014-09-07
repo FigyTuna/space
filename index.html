@@ -1,0 +1,94 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Space</title>
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			background-color: #303030;
+		}
+	</style>
+	<script src="pixi.js"></script>
+</head>
+	<body>
+		<script>
+		// PIXI Stuff
+		var stage = new PIXI.Stage(0x000000);
+		var renderer = PIXI.autoDetectRenderer(1000, 600);
+		document.body.appendChild(renderer.view);
+
+		requestAnimFrame(animate);
+
+		//Textures
+		//(Use for loops if I start making more frames.)
+
+		var guyTexture = new Array(2);
+		guyTexture[0] = PIXI.Texture.fromImage("images/guy0.png");
+		guyTexture[1] = PIXI.Texture.fromImage("images/guy1.png");
+
+		var starTexture = new Array(2);
+		starTexture[0] = PIXI.Texture.fromImage("images/star0.png");
+		starTexture[1] = PIXI.Texture.fromImage("images/star1.png");
+
+		//Mechanic variables
+
+		var spaceX = 0;
+		var spaceY = 0;
+
+		var stars = new Array(20);
+		for(var i = 0; i < stars.length; i++){
+			stars[i] = new Array(3);
+		}
+
+		var starContainer = new PIXI.DisplayObjectContainer();
+
+		//Init stars
+
+		for(var i = 0; i<stars.length; i++){
+			stars[i][0] = (Math.floor(Math.random()*1100)-50);
+			stars[i][1] = (Math.floor(Math.random()*700)-50);
+			stars[i][2] = (Math.floor(Math.random()*2));
+		}
+
+		drawStars();
+
+		stage.addChild(starContainer);
+
+		//Guy
+
+		var guy = new PIXI.Sprite(guyTexture[0]);
+
+		guy.anchor.x = 0.5;
+		guy.anchor.y = 0.5;
+
+		guy.position.x = 1000/2;
+		guy.position.y = 600/2;
+
+		stage.addChild(guy);
+
+		//Events
+
+		document.addEventListener('mousedown', function(event) {
+			guy.position.x = event.pageX;
+			guy.position.y = event.pageY;
+        });
+
+		function animate() {
+		    requestAnimFrame(animate);
+
+		    renderer.render(stage);
+		}
+		function drawStars(){
+			for(var i = 0; i<stars.length; i++){
+				var nextStar = new PIXI.Sprite(starTexture[stars[i][2]]);
+
+				nextStar.position.x = stars[i][0];
+				nextStar.position.y = stars[i][1];
+
+				starContainer.addChild(nextStar);
+			}
+		}
+		</script>
+	</body>
+</html>
