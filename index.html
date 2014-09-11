@@ -45,6 +45,9 @@
 		var compasTexture = PIXI.Texture.fromImage("images/compas.png");
 		var compasPointTexture = PIXI.Texture.fromImage("images/compasPoint.png");
 		var compasToggleTexture = PIXI.Texture.fromImage("images/compasToggle.png");
+		var flashTexture = PIXI.Texture.fromImage("images/flash.png");
+
+		var baddieTexture = PIXI.Texture.fromImage("images/baddie.png");
 
 		//Mechanic variables
 		var gameWon = false;
@@ -63,6 +66,15 @@
 		var arrowFrame = 0;
 
 		var compasOn = false;
+		var stopPushClick = 0;
+
+		var flashTimer = 0;
+		var flashStrength = 3000;
+
+		var baddieTimer = 700;
+		var baddieRotation = (Math.random()-.5)/3;
+		var baddieX = Math.random()*30000;
+		var baddieY = Math.random()*30000;
 
 		//Stars
 		var stars = new Array(20);
@@ -102,7 +114,7 @@
 
 		var compasPoint = new PIXI.Sprite(compasPointTexture);
 
-		compasPoint.anchor.x = -1.5;
+		compasPoint.anchor.x = -1.45;
 		compasPoint.anchor.y = 0.5;
 		compasPoint.position.x = 1000/2;
 		compasPoint.position.y = 600/2;
@@ -120,6 +132,7 @@
 
 		compasToggle.mousedown = compasToggle.touchstart = function(){
 			compasOn = !compasOn;
+			stopPushClick = 1;
 		}
 
 		stage.addChild(compasToggle);
@@ -140,10 +153,10 @@
 		arrows[7][0] = 18000; arrows[7][1] = 4000; arrows[7][2] = 1; arrows[7][3] = 1;
 		arrows[8][0] = 25000; arrows[8][1] = 12000; arrows[8][2] = 5; arrows[8][3] = 1;
 
-		arrows[9][0] = 3000; arrows[9][1] = 26000; arrows[9][2] = 7; arrows[9][3] = 2;
-		arrows[10][0] = 8000; arrows[10][1] = 22000; arrows[10][2] = 7; arrows[10][3] = 2;
-		arrows[11][0] = 11000; arrows[11][1] = 18000; arrows[11][2] = 7; arrows[11][3] = 2;
-		arrows[12][0] = 15000; arrows[12][1] = 14000; arrows[12][2] = 7; arrows[12][3] = 2;
+		arrows[9][0] = 19000; arrows[9][1] = 10000; arrows[9][2] = 3; arrows[9][3] = 2;
+		arrows[10][0] = 8000; arrows[10][1] = 22000; arrows[10][2] = 3; arrows[10][3] = 2;
+		arrows[11][0] = 11000; arrows[11][1] = 18000; arrows[11][2] = 3; arrows[11][3] = 2;
+		arrows[12][0] = 15000; arrows[12][1] = 14000; arrows[12][2] = 3; arrows[12][3] = 2;
 
 		arrows[13][0] = 20000; arrows[13][1] = 21000; arrows[13][2] = 2; arrows[13][3] = 3;
 		arrows[14][0] = 21000; arrows[14][1] = 20000; arrows[14][2] = 0; arrows[14][3] = 3;
@@ -177,7 +190,8 @@
 			nextArrow.rotation = arrows[i][2]*.8;
 
 			arrowContainer.addChild(nextArrow);
-		}
+		}//3000 26000
+		//19000 10000
 
 		stage.addChild(arrowContainer);
 
@@ -188,7 +202,7 @@
 		}
 		tokens[0][0] = 4500; tokens[0][1] = 1500; tokens[0][2] = false;
 		tokens[1][0] = 21000; tokens[1][1] = 8000; tokens[1][2] = false;
-		tokens[2][0] = 19000; tokens[2][1] = 10000; tokens[2][2] = false;
+		tokens[2][0] = 3000; tokens[2][1] = 26000; tokens[2][2] = false;
 		tokens[3][0] = 20000; tokens[3][1] = 20000; tokens[3][2] = false;
 		tokens[4][0] = 13000; tokens[4][1] = 20000; tokens[4][2] = false;
 		tokens[5][0] = 6500; tokens[5][1] = 8000; tokens[5][2] = false;
@@ -209,52 +223,46 @@
 
 		//Guy
 
+		var guyContainer = new PIXI.DisplayObjectContainer();
+
+		guyContainer.position.x = 1000/2;
+		guyContainer.position.y = 600/2;
+
 		var guy = new PIXI.Sprite(guyTexture[guyFrame]);
 
 		guy.anchor.x = 0.5;
 		guy.anchor.y = 0.5;
 
-		guy.position.x = 1000/2;
-		guy.position.y = 600/2;
+		guyContainer.addChild(guy);
 
-		stage.addChild(guy);
+		var flash = new PIXI.Sprite(flashTexture);
+
+		flash.anchor.x = 0.5;
+		flash.anchor.y = 0.5;
+
+		flash.alpha = 0;
+
+		guyContainer.addChild(flash);
+
+		stage.addChild(guyContainer);
+
+		//Baddie
+
+		var baddie = new PIXI.Sprite(baddieTexture);
+
+		baddie.anchor.x = baddie.anchor.y = .5;
+
+		baddie.position.x = 5000;
+		baddie.position.y = 5000;
+
+		stage.addChild(baddie);
 
 		//Events
 
 		document.addEventListener('mousedown', function(event) {
-			if(event.pageX < 1000 && event.pageY < 600){
-				var DX = event.pageX - (1000/2);
-				var DY = event.pageY - (600/2);
-
-				var angle = Math.atan2(DY, DX) * 180 / Math.PI;
-
-				var distance = Math.sqrt(((event.pageX-(1000/2))*(event.pageX-(1000/2)))+((event.pageY-(600/2))*(event.pageY-(600/2))));
-
-				speedX += (Math.cos((angle+180) * (Math.PI / 180)))*(Math.abs((distance-600))/100);
-				speedY += (Math.sin((angle+180) * (Math.PI / 180)))*(Math.abs((distance-600))/100);
-
-				console.log("X:"+Math.floor(spaceX)+" Y:"+Math.floor(spaceY));
-
-				if(ringSize == 0){
-					var ring = new PIXI.Sprite(ringTexture);
-					ring.anchor.x = 0.5;
-					ring.anchor.y = 0.5;
-					ring.position.x = event.pageX;
-					ring.position.y = event.pageY;
-					ringContainer.addChild(ring);
-
-					ringSize = 1;
-
-					guyRotation = (Math.random()*0.5)-0.25;
-
-					if(compasOn){
-						compasContainer.alpha=1;
-						compasPoint.alpha=1;
-					}
-
-					compasPoint.rotation = (angle + 180) * (Math.PI / 180);
-				}
-			}
+				if(stopPushClick == 0){
+					push(event.pageX, event.pageY, true);
+				}else{stopPushClick = 2;}
         });
 		//Animate
 		function animate() {
@@ -268,9 +276,46 @@
 
 		    renderer.render(stage);
 		}
+		//Push
+		function push(cx, cy, spawnRing){
+			if(cx < 1000 && cy < 600){
+
+				var angle = Math.atan2(cy - (600/2), cx - (1000/2)) * 180 / Math.PI;
+
+				var distance = Math.sqrt(((cx-(1000/2))*(cx-(1000/2)))+((cy-(600/2))*(cy-(600/2))));
+
+				speedX += (Math.cos((angle+180) * (Math.PI / 180)))*(Math.abs((distance-600))/100);
+				speedY += (Math.sin((angle+180) * (Math.PI / 180)))*(Math.abs((distance-600))/100);
+
+				if(ringSize == 0 && spawnRing){
+					var ring = new PIXI.Sprite(ringTexture);
+					ring.anchor.x = 0.5;
+					ring.anchor.y = 0.5;
+					ring.position.x = cx;
+					ring.position.y = cy;
+					ringContainer.addChild(ring);
+
+					ringSize = 1;
+
+					guyRotation = (Math.random()/2)-0.25;
+
+					if(compasOn){
+						compasContainer.alpha=1;
+						compasPoint.alpha=1;
+					}
+
+					compasPoint.rotation = (angle + 180) * (Math.PI / 180);
+
+					console.log("X:"+Math.floor(spaceX)+" Y:"+Math.floor(spaceY));
+				}
+			}
+		}
 		//Guy
 		function guyAnimation(){
-		    guy.rotation += guyRotation;
+			if(stopPushClick == 2){
+				stopPushClick = 0;
+			}
+		    guyContainer.rotation += guyRotation;
 		    guyRotation = guyRotation/1.01;
 		    guyAnimTimer++;
 		    if(guyAnimTimer > 50){
@@ -278,7 +323,7 @@
 		    	if(guyFrame > 1){
 		    		guyFrame = 0;
 		    	}
-		    	guy.setTexture(guyTexture[guyFrame]);
+		    	guyContainer.getChildAt(0).setTexture(guyTexture[guyFrame]);
 		    	guyAnimTimer = 0;
 		    }
 		}
@@ -308,6 +353,56 @@
 			//Compas
 			compasContainer.alpha-=0.02;
 			compasPoint.alpha-=0.02;
+			//Flash
+			var numberOfTokensNearby = 0;
+			var distance;
+			for(var i = 0; i < tokens.length; i++){
+				if(Math.sqrt(((tokens[i][0]-spaceX)*(tokens[i][0]-spaceX)+((tokens[i][1]-spaceY)*(tokens[i][1]-spaceY)))) < flashStrength && tokens[i][2] == false){
+					if(numberOfTokensNearby == 0){
+						distance = Math.sqrt(((tokens[i][0]-spaceX)*(tokens[i][0]-spaceX)+((tokens[i][1]-spaceY)*(tokens[i][1]-spaceY))));
+					}else{
+						if(Math.sqrt(((tokens[i][0]-spaceX)*(tokens[i][0]-spaceX)+((tokens[i][1]-spaceY)*(tokens[i][1]-spaceY)))) < distance){
+						distance = Math.sqrt(((tokens[i][0]-spaceX)*(tokens[i][0]-spaceX)+((tokens[i][1]-spaceY)*(tokens[i][1]-spaceY))));
+						}
+					}
+					numberOfTokensNearby++;
+				}
+			}
+			if(numberOfTokensNearby > 0){
+				flashTimer += Math.abs((distance-flashStrength)/(flashStrength*1.75));
+				guyContainer.getChildAt(1).alpha = (Math.sin(flashTimer)+1)/2;
+			}else{
+				guyContainer.getChildAt(1).alpha = 0;
+				flashTimer = 0;
+			}
+		    //Baddie
+		    baddie.position.x = baddieX - spaceX + 1000/2;
+		    baddie.position.y = baddieY - spaceY + 600/2;
+		    baddie.rotation += baddieRotation;
+		    baddieTimer--;
+
+		    baddieDistance = Math.sqrt(((baddieX-spaceX)*(baddieX-spaceX)+((baddieY-spaceY)*(baddieY-spaceY))));
+
+		    if(baddieDistance < 1500){
+		    	if(baddieTimer < 50){
+		    		baddieTimer = Math.random()*400+200;
+		    	}
+		    	if(baddieDistance < 110){
+		    		push(baddie.position.x, baddie.position.y, false);
+		    	}
+		    }
+
+		    if(baddieTimer < 0){
+		    	baddieTimer = Math.random()*250+150;
+		    	spawnSpot = Math.random()*90;
+		    	baddieX = spaceX + Math.cos(spawnSpot)*800;
+		    	baddieY = spaceY + Math.sin(spawnSpot)*800;
+				baddieRotation = (Math.random()-.5)/3;
+		    }
+
+			var baddieAngle = Math.atan2(baddieY - spaceY, baddieX - spaceX) * 180 / Math.PI;
+			baddieX += (Math.cos((baddieAngle+180) * (Math.PI / 180)))*6;
+			baddieY += (Math.sin((baddieAngle+180) * (Math.PI / 180)))*6;
 		}
 		//Movement
 		function movement(){
@@ -319,24 +414,28 @@
 				for(var i = 0; i < stars.length; i++){
 					starContainer.getChildAt(i).position.x = stars[i][0] += 30000;
 				}
+				baddieX += 30000;
 			}
 			if(spaceX > 30000){
 				spaceX = 0;
 				for(var i = 0; i < stars.length; i++){
 					starContainer.getChildAt(i).position.x = stars[i][0] -= 30000;
 				}
+				baddieX -= 30000;
 			}
 			if(spaceY < 0){
 				spaceY = 30000;
 				for(var i = 0; i < stars.length; i++){
 					starContainer.getChildAt(i).position.y = stars[i][1] += 30000;
 				}
+				baddieY += 30000;
 			}
 			if(spaceY > 30000){
 				spaceY = 0;
 				for(var i = 0; i < stars.length; i++){
 					starContainer.getChildAt(i).position.y = stars[i][1] -= 30000;
 				}
+				baddieY -= 30000;
 			}
 
 			for(var i = 0; i < stars.length; i++){
@@ -363,7 +462,7 @@
 				}
 			}
 
-			var top_speed = 20;
+			var top_speed = 25;
 			if(speedX > top_speed){
 				speedX = top_speed;
 			}
@@ -383,12 +482,20 @@
 		//Token Functions
 		function tokenCheck(){
 			var win = true;
+			var tokensLeft = 6;
 			for(var i = 0; i<tokens.length; i++){
-				if(spaceX+1000/2 > tokens[i][0]-50 && spaceX+1000/2 < tokens[i][0]+50 && spaceY+600/2 > tokens[i][1]-50 && spaceY+600/2 < tokens[i][1]+50 && tokens[i][2] == false){
-					gotToken(i);
-				}
 				if(tokens[i][2] == false){
 					win = false;
+					tokensLeft--;
+				}
+				if(spaceX+1000/2 > tokens[i][0]-50 && spaceX+1000/2 < tokens[i][0]+50 && spaceY+600/2 > tokens[i][1]-50 && spaceY+600/2 < tokens[i][1]+50 && tokens[i][2] == false){
+					gotToken(i);
+					if(tokensLeft == 3){
+						flashStrength = 4000;
+					}
+					if(tokensLeft == 1){
+						flashStrength = 9000;
+					}
 				}
 			}
 			if(win && gameWon == false){

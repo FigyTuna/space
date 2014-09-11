@@ -3,14 +3,11 @@
 This game is pretty much finished.
 
 I'm gonna fine tune things later.
+Edit: I fine tuned some things. I might do some more work but now it's unlikely.
 
-Some things I should add:
-	Each token gives an ability to help with getting other tokens:
-		Compass.
-		Proximity sensor.
-		Coordinates.
-		arrow size.
-	Fine tune different speeds for different distances clicked.
-	Think about broken pushing system.
-	More landmarks.
-	Bad guys? NPCs?
+Helpful things used in this game:
+
+distance formula:
+Math.sqrt(((X1-X2)*(X1-X2)+((Y1-Y2)*(Y1-Y2))))
+Angle Formula:
+Math.atan2(Y1 - Y2, X1 - X2) * 180 / Math.PI
